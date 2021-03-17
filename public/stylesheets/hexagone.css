@@ -12,9 +12,9 @@
   
   /* Colors */
   --color-hex-default: #000000;
-  --color-hex-hover:   #FFFFFF;
-  --color-hex-empty: #FF0000;
-  --color-hex-hover-empty: #FF0000;
+  --color-hex-hover:   #303030;
+  --color-hex-empty: #FFFFFF;
+  --color-hex-hover-empty: #FFFFFF;
 }
 
 /* Hexagons */
@@ -89,7 +89,7 @@
   transition: var(--hex-transition);
 }
 
-/* Colors exemple */
+/* Colors */
 .empty {
   background-color: var(--color-hex-empty);
 }
@@ -100,4 +100,27 @@
 }
 .empty:hover {
   fill: var(--color-hex-hover-empty);
+}
+.hexagon:hover::after,
+.hexagon:hover::before {
+  border-top-color: var(--color-hex-hover-empty);
+  border-bottom-color: var(--color-hex-hover-empty);
+}
+
+
+
+.ballB, .ballW {
+  z-index: 1;
+  position: absolute;
+  background-color: #00FF00;
+  margin: 20px auto;
+  width: 55px;
+  height: 55px;
+  border-radius: 200px;
+}
+.ballB {
+  background-color: #00FF00;
+}
+.ballW {
+  background-color: #0000FF;
 }
