@@ -11,10 +11,20 @@
   --hex-transition: all .2s ease;
   
   /* Colors */
-  --color-hex-default: #000000;
-  --color-hex-hover:   #303030;
+  --color-hex-default: #444444;
+  --color-hex-hover:   #222222;
+  
   --color-hex-empty: #FFFFFF;
-  --color-hex-hover-empty: #FFFFFF;
+  --color-hex-empty-hover: #FFFFFF;
+
+  --color-hex-select: #44CC44;
+  --color-hex-select-hover:   #22CC22;
+
+  --color-hex-target: #CC4444;
+  --color-hex-target-hover:   #CC2222;
+
+  --color-ballW: #EEEEEE;
+  --color-ballB: #111111;
 }
 
 /* Hexagons */
@@ -69,7 +79,7 @@
 .hexagon:hover::before {
   border-top-color: var(--color-hex-hover);
   border-bottom-color: var(--color-hex-hover);
-  }
+}
  
 .hexagon:nth-child(18n + 10),
 .hexagon:nth-child(18n + 11),
@@ -89,9 +99,10 @@
   transition: var(--hex-transition);
 }
 
-/* Colors */
+
 .empty {
   background-color: var(--color-hex-empty);
+  cursor: auto;
 }
 .empty::after,
 .empty::before {
@@ -99,28 +110,65 @@
   border-bottom-color: var(--color-hex-empty);
 }
 .empty:hover {
-  fill: var(--color-hex-hover-empty);
+  fill: var(--color-hex-empty-hover);
+  background-color: var(--color-hex-empty-hover);
 }
-.hexagon:hover::after,
-.hexagon:hover::before {
-  border-top-color: var(--color-hex-hover-empty);
-  border-bottom-color: var(--color-hex-hover-empty);
+.empty:hover::after,
+.empty:hover::before {
+  border-top-color: var(--color-hex-empty-hover);
+  border-bottom-color: var(--color-hex-empty-hover);
 }
 
+
+.select {
+  background-color: var(--color-hex-select);
+}
+.select::after,
+.select::before {
+  border-top-color: var(--color-hex-select);
+  border-bottom-color: var(--color-hex-select);
+}
+.select:hover {
+  fill: var(--color-hex-select-hover);
+  background-color: var(--color-hex-select-hover);
+}
+.select:hover::after,
+.select:hover::before {
+  border-top-color: var(--color-hex-select-hover);
+  border-bottom-color: var(--color-hex-select-hover);
+}
+
+
+.target {
+  background-color: var(--color-hex-target);
+}
+.target::after,
+.target::before {
+  border-top-color: var(--color-hex-target);
+  border-bottom-color: var(--color-hex-target);
+}
+.target:hover {
+  fill: var(--color-hex-target-hover);
+  background-color: var(--color-hex-target-hover);
+}
+.target:hover::after,
+.target:hover::before {
+  border-top-color: var(--color-hex-target-hover);
+  border-bottom-color: var(--color-hex-target-hover);
+}
 
 
 .ballB, .ballW {
   z-index: 1;
   position: absolute;
-  background-color: #00FF00;
   margin: 20px auto;
   width: 55px;
   height: 55px;
   border-radius: 200px;
 }
 .ballB {
-  background-color: #00FF00;
+  background-color: var(--color-ballB);
 }
 .ballW {
-  background-color: #0000FF;
+  background-color: var(--color-ballW);
 }
