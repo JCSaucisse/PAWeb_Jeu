@@ -3,6 +3,9 @@ const playerNames = ['noirs', 'blancs'];
 let turnToPlay = 0;
 let score = [0, 0];
 
+let gamePhase = 'preinit';
+// 'init', 'playerSelect', 'playerTarget'
+
 let selectedHexagonInt = -1;
 
 const grid = [
@@ -40,20 +43,28 @@ function hexagonClicked(hexagonId) {
     console.log("clic on : ");
     console.log(hexagonId);
     hexagon = document.getElementById(hexagonId);
-    if(hexagon.classList.contains("select")){
+    if(hexagon.classList.contains("select") && gamePhase == 'playerSelect'){
+        // Selection
         unselectAll();
         hexagon.classList.add("select");
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
         selectedHexagonInt = hexagonInt;
         let targets = getPossibleTargets(hexagonInt);
-        console.log("targets:"+targets);
-        for(let i = 0; i < targets.length; i++){
+            for(let i = 0; i < targets.length; i++){
             let targetIntStr = targets[i].toString();
-            console.log("target : "+targetIntStr);
             document.getElementById("hexagon"+targetIntStr).classList.add("target");
         }
+        gamePhase = 'playerTarget';
+    }
+    else if(hexagon.classList.contains("select") && gamePhase == 'playerTarget'){
+        // Deselection
+        unselectAll();
+        untargetAll();
+        selectPlayableCases();
+        gamePhase = 'playerSelect';
     }
     if(hexagon.classList.contains("target")){
+        // Target = ou deplacer la bille
         unselectAll();
         untargetAll();
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
@@ -128,6 +139,7 @@ function removeBall(ballCase){
 
 function init(){
     console.log("init");
+    gamePhase = 'init';
     createGrid();
     initBalls();
     updateScoreIndicator();
@@ -138,6 +150,12 @@ function beginTurn(player){
     turnToPlay = player;
     document.getElementById('turnToPlayIndicator').innerHTML = playerNames[turnToPlay];
 
+    selectPlayableCases();
+
+    gamePhase = 'playerSelect';
+}
+
+function selectPlayableCases(){
     let playableCases;
     if(turnToPlay == 0)
         playableCases = document.querySelectorAll('.caseB');
@@ -165,6 +183,10 @@ function untargetAll(){
 function getPossibleTargets(hexagonInt){
     neighbors = getNeighbors(hexagonInt);
 
+    for (let i = neighbors.length - 1; i >= 0; i--) {
+        if(!isMovePossible(hexagonInt,neighbors[i]))
+            neighbors.remove(i);
+    }
     return neighbors;
 }
 
