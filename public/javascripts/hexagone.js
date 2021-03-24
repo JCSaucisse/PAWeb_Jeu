@@ -83,45 +83,55 @@ function hexagonClicked(hexagonId) {
 				isOk = true;
 			}
 		}
-		console.log(selectedHexagonIntList);
-		console.log(selectedHexagonIntListBis);
-		while(selectedHexagonIntListBis.length > 0){
-			selectedHexagonIntList.push(selectedHexagonIntListBis.pop());
-		}
-		console.log(selectedHexagonIntList);
-		console.log(selectedHexagonIntListBis);
+		//while(selectedHexagonIntListBis.length > 0){
+		//	selectedHexagonIntList.push(selectedHexagonIntListBis.pop());
+		//}
 		if (selectedHexagonIntList.length == 0){
 			console.log("length = 0");
 			selectPlayableCases();
 			gamePhase = 'playerSelect';
 		}
 		else{
-			console.log(selectedHexagonIntList);
 			for(let i=0; i<selectedHexagonIntList.length; i++){
 				getTarget(selectedHexagonIntList[i])
 			}
 			gamePhase = 'playerTarget';
 		}
     }
-	else if(hexagon.classList.contains("same") && selectedHexagonIntList.length<3){
-		// selection de plusieurs hexagon
-		console.log("same color");
+	else if(hexagon.classList.contains("same") && selectedHexagonIntList.length==1){
+		// selection du deuxième hexagon
+		console.log("deuxième hexagon");
 		hexagon.classList.remove("same");
+		unsameAll();
 		hexagon.classList.add("select");
 		let hexagonInt = parseInt(hexagonId.replace("hexagon", ""));
 		selectedHexagonIntList.push(hexagonInt);
 		let targets = getPossibleTargets(hexagonInt);
-            for(let i = 0; i < targets.length; i++){
-				let targetIntStr = targets[i].toString();
-				targetI = document.getElementById("hexagon"+targetIntStr)
-				if(isSameColor(hexagon, targetI)){
-					if (!document.getElementById("hexagon"+targetIntStr).classList.contains("select")){
-						document.getElementById("hexagon"+targetIntStr).classList.add("same");
-					}
-				}
-				else{
-					document.getElementById("hexagon"+targetIntStr).classList.add("target");
-				}
+        for(let i = 0; i < targets.length; i++){
+			let targetIntStr = targets[i].toString();
+			targetI = document.getElementById("hexagon"+targetIntStr)
+			if(!isSameColor(hexagon, targetI)){
+				document.getElementById("hexagon"+targetIntStr).classList.add("target");
+			}
+		}
+		getSame2();
+        gamePhase = 'playerTarget';
+	}
+	else if(hexagon.classList.contains("same") && selectedHexagonIntList.length==2){
+		// selection du troisième hexagon
+		console.log("troisième hexagon");
+		hexagon.classList.remove("same");
+		unsameAll();
+		hexagon.classList.add("select");
+		let hexagonInt = parseInt(hexagonId.replace("hexagon", ""));
+		selectedHexagonIntList.push(hexagonInt);
+		let targets = getPossibleTargets(hexagonInt);
+        for(let i = 0; i < targets.length; i++){
+			let targetIntStr = targets[i].toString();
+			targetI = document.getElementById("hexagon"+targetIntStr)
+			if(!isSameColor(hexagon, targetI)){
+				document.getElementById("hexagon"+targetIntStr).classList.add("target");
+			}
         }
         gamePhase = 'playerTarget';
 	}
@@ -130,8 +140,10 @@ function hexagonClicked(hexagonId) {
 		console.log("target");
         unselectAll();
         untargetAll();
+		unsameAll();
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
         move(selectedHexagonInt, hexagonInt);
+		selectedHexagonIntList = [];
         beginTurn(1-turnToPlay);
     }
 }
@@ -154,6 +166,25 @@ function getTarget(hexagonInt){
 		}
 		else{
 			document.getElementById("hexagon"+targetIntStr).classList.add("target");
+		}
+	}
+}
+
+function getSame2(){
+	hexagon = document.getElementById("hexagon"+selectedHexagonIntList[0]);
+	let x = Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])
+	let maxi = Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1])+x;
+	let mini = maxi-3*x;
+	same1 = document.getElementById("hexagon"+maxi);
+	if (same1 != null){
+		if(isSameColor(hexagon, same1)){
+			document.getElementById("hexagon"+maxi).classList.add("same");
+		}
+	}
+	same2 = document.getElementById("hexagon"+mini);
+	if (same2 != null){
+		if(isSameColor(hexagon, same2)){
+			document.getElementById("hexagon"+mini).classList.add("same");
 		}
 	}
 }
