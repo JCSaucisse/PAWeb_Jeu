@@ -1,5 +1,6 @@
 const playerNames = ['noirs', 'blancs'];
 
+let playerColor;
 let turnToPlay = 0;
 let score = [0, 0];
 
@@ -93,7 +94,7 @@ function createGrid(){
 }
 
 function initBalls(){
-    let gridInit = [
+    const gridInit = [
         2,2,2,2,2,
         2,2,2,2,2,2,
         1,1,2,2,2,1,1,
@@ -137,22 +138,27 @@ function removeBall(ballCase){
     return true;
 }
 
-function init(){
+function init(playerColor_){
     console.log("init");
     gamePhase = 'init';
+    playerColor = playerColor_;
     createGrid();
     initBalls();
     updateScoreIndicator();
-    beginTurn(1);
+    beginTurn(0);
 }
 
 function beginTurn(player){
     turnToPlay = player;
     document.getElementById('turnToPlayIndicator').innerHTML = playerNames[turnToPlay];
 
-    selectPlayableCases();
-
-    gamePhase = 'playerSelect';
+    if(turnToPlay == playerColor){
+        selectPlayableCases();
+        gamePhase = 'playerSelect';
+    }
+    else{
+        gamePhase = 'opponentTurn';
+    }
 }
 
 function selectPlayableCases(){
@@ -240,4 +246,17 @@ function updateScoreIndicator(){
     document.getElementById("scoreIndicator").innerHTML = score[0].toString()+" - "+score[1].toString();
 }
 
-window.onload = init();
+function readyButtonClicked(){
+    ready = true;
+    document.getElementById("readyButton").innerHTML = "ok";
+    socket.emit('ready', ready);
+}
+
+var socket = io.connect('http://localhost:8080');
+socket.on('statut', function (data) {              // réception 'hello'
+    dropzone.textContent = 'Statut : '+JSON.stringify(data);
+});
+socket.on('init', function (playerColor) {              // réception 'hello'
+    init(playerColor);
+});
+

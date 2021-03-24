@@ -6,6 +6,7 @@
   <meta charset="utf-8">
   <title>Hexagone</title>
   <link rel="stylesheet" href="/stylesheets/hexagone.css">
+  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
   
@@ -15,6 +16,8 @@
         <h3>C'est aux <div id="turnToPlayIndicator"></div> de jouer</h3>
         <h2>Score : <div id="scoreIndicator"></div></h2>
       </div>
+      <div id="dropzone"></div>
+      <button id="readyButton" onclick="readyButtonClicked()">Prêt</button> 
     </header>
 
     <main class="hexagon-container" id="grid">

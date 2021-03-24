@@ -45,8 +45,87 @@ const httpServer = require("http").createServer(app);
 httpServer.listen(8080);
 
 
+
+
+
+
+// Gestion du jeu
+const playerNames = ['noirs', 'blancs'];
+const gridInit = [
+        [ 1, 1, 1, 1, 1,-1,-1,-1,-1],
+        [ 1, 1, 1, 1, 1 ,1,-1,-1,-1],
+        [ 2, 2, 1, 1, 1, 2, 2,-1,-1],
+        [ 2, 2, 2, 2, 2, 2, 2, 2,-1],
+        [ 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [-1, 2, 2, 2, 2, 2, 2, 2, 2],
+        [-1,-1, 2, 2, 0, 0, 0, 2, 2],
+        [-1,-1,-1, 0, 0, 0, 0, 0, 0],
+        [-1,-1,-1,-1, 0, 0, 0, 0, 0]];
+
+let playerSockets = [];
+
+//  -1 attente de deux ready; 0 : tour des noirs; 1 blancs
+let phase = -1;
+
+let grid;
+
+function init(){
+    console.log('init');
+    turnToPlay = 0;
+    grid = gridInit;
+
+    // deux, un chaque couleur, le noir commence son tour
+    playerSockets[0].emit('init', 0);
+    playerSockets[1].emit('init', 1);
+}
+
+function play(){
+    if(isMovePossible()){
+        // modif grille locale
+
+        // verif victoire
+
+        playerSockets[1-phase].emit('opponentPlay', 0); // a l'autre, c'est a lui de jouer
+    }
+}
+
+function isMovePossible(){
+    return true;
+}
+
+
+
 var io = require('socket.io')(httpServer);
 io.on('connection', function (socket) {
-  console.log('client connected');
-  socket.emit('hello',{'this': 'is my data'});
+    console.log('connection', socket.id);
+    socket.emit('statut','connecté');
+
+
+
+    socket.on('ready', function (ready) {
+        console.log('ready ', socket.id, ready);
+        if(phase != -1)
+            return;
+
+        if(ready){
+            playerSockets.push(socket);
+
+            if(playerSockets.length == 2){ // verif tjrs present?
+                init();
+            }
+        }
+        else{
+            playerSockets.splice(playerSockets.indexOf(socket),1);
+        }
+    });
+
+    socket.on('play', function () {
+        console.log('play ', socket.id);
+        if(phase != 0 && phase != 1)
+            return;
+        if(socket.id != playerSockets[phase].id) // verif c'est bien a lui de jouer
+            return;
+
+        play();
+    });
 });
