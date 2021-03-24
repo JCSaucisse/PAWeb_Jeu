@@ -7,6 +7,7 @@ let gamePhase = 'preinit';
 // 'init', 'playerSelect', 'playerTarget'
 
 let selectedHexagonInt = -1;
+let selectedHexagonIntList = [];
 
 const grid = [
         [-1,-1, 0, 1, 2, 3, 4,-1,-1],
@@ -45,32 +46,116 @@ function hexagonClicked(hexagonId) {
     hexagon = document.getElementById(hexagonId);
     if(hexagon.classList.contains("select") && gamePhase == 'playerSelect'){
         // Selection
+		console.log("selection1");
         unselectAll();
         hexagon.classList.add("select");
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
         selectedHexagonInt = hexagonInt;
+		selectedHexagonIntList.push(hexagonInt);
         let targets = getPossibleTargets(hexagonInt);
             for(let i = 0; i < targets.length; i++){
-            let targetIntStr = targets[i].toString();
-            document.getElementById("hexagon"+targetIntStr).classList.add("target");
+				let targetIntStr = targets[i].toString();
+				targetI = document.getElementById("hexagon"+targetIntStr)
+				if(isSameColor(hexagon, targetI)){
+					document.getElementById("hexagon"+targetIntStr).classList.add("same");
+				}
+				else{
+					document.getElementById("hexagon"+targetIntStr).classList.add("target");
+				}
         }
         gamePhase = 'playerTarget';
     }
     else if(hexagon.classList.contains("select") && gamePhase == 'playerTarget'){
         // Deselection
+		console.log("selection2");
         unselectAll();
         untargetAll();
-        selectPlayableCases();
-        gamePhase = 'playerSelect';
+		unsameAll();
+		let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
+        selectedHexagonInt = hexagonInt;
+		let selectedHexagonIntListBis = [];
+		let isOk = false;
+		while(!isOk){
+			potentialSelectedHexagonInt = selectedHexagonIntList.pop();
+			selectedHexagonIntListBis.push(potentialSelectedHexagonInt);
+			if(potentialSelectedHexagonInt == selectedHexagonInt){
+				selectedHexagonIntListBis.pop();
+				isOk = true;
+			}
+		}
+		console.log(selectedHexagonIntList);
+		console.log(selectedHexagonIntListBis);
+		while(selectedHexagonIntListBis.length > 0){
+			selectedHexagonIntList.push(selectedHexagonIntListBis.pop());
+		}
+		console.log(selectedHexagonIntList);
+		console.log(selectedHexagonIntListBis);
+		if (selectedHexagonIntList.length == 0){
+			console.log("length = 0");
+			selectPlayableCases();
+			gamePhase = 'playerSelect';
+		}
+		else{
+			console.log(selectedHexagonIntList);
+			for(let i=0; i<selectedHexagonIntList.length; i++){
+				getTarget(selectedHexagonIntList[i])
+			}
+			gamePhase = 'playerTarget';
+		}
     }
-    if(hexagon.classList.contains("target")){
+	else if(hexagon.classList.contains("same") && selectedHexagonIntList.length<3){
+		// selection de plusieurs hexagon
+		console.log("same color");
+		hexagon.classList.remove("same");
+		hexagon.classList.add("select");
+		let hexagonInt = parseInt(hexagonId.replace("hexagon", ""));
+		selectedHexagonIntList.push(hexagonInt);
+		let targets = getPossibleTargets(hexagonInt);
+            for(let i = 0; i < targets.length; i++){
+				let targetIntStr = targets[i].toString();
+				targetI = document.getElementById("hexagon"+targetIntStr)
+				if(isSameColor(hexagon, targetI)){
+					if (!document.getElementById("hexagon"+targetIntStr).classList.contains("select")){
+						document.getElementById("hexagon"+targetIntStr).classList.add("same");
+					}
+				}
+				else{
+					document.getElementById("hexagon"+targetIntStr).classList.add("target");
+				}
+        }
+        gamePhase = 'playerTarget';
+	}
+    else if(hexagon.classList.contains("target")){
         // Target = ou deplacer la bille
+		console.log("target");
         unselectAll();
         untargetAll();
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
         move(selectedHexagonInt, hexagonInt);
         beginTurn(1-turnToPlay);
     }
+}
+
+function getTarget(hexagonInt){
+	hexagon = document.getElementById("hexagon"+hexagonInt);
+	if (hexagon.classList.contains("same")){
+		hexagon.classList.remove("same");
+	}
+    hexagon.classList.add("select");
+	let targets = getPossibleTargets(hexagonInt);
+    for(let i = 0; i < targets.length; i++){
+		let targetIntStr = targets[i].toString();
+		targetI = document.getElementById("hexagon"+targetIntStr)
+		hexagon1 = document.getElementById("hexagon"+hexagonInt.toString());
+		if(isSameColor(hexagon1, targetI)){
+			if (!document.getElementById("hexagon"+targetIntStr).classList.contains("select")){
+				document.getElementById("hexagon"+targetIntStr).classList.add("same");
+			}
+		}
+		else{
+			document.getElementById("hexagon"+targetIntStr).classList.add("target");
+		}
+	}
 }
 
 function createGrid(){
@@ -148,7 +233,7 @@ function init(){
 
 function beginTurn(player){
     turnToPlay = player;
-    document.getElementById('turnToPlayIndicator').innerHTML = playerNames[turnToPlay];
+    document.getElementById('turnToPlayIndicator').innerHTML = playerNames[turnToPlay]; // selection du joueur
 
     selectPlayableCases();
 
@@ -179,18 +264,24 @@ function untargetAll(){
         targetCases[i].classList.remove("target");
     }
 }
+function unsameAll(){
+	selectCases = document.querySelectorAll('.same');
+	for(let i = 0; i < selectCases.length; i++){
+		selectCases[i].classList.remove("same");
+	}
+}
 
-function getPossibleTargets(hexagonInt){
+function getPossibleTargets(hexagonInt){  // et si on donne une liste des hexagon selectionné
     neighbors = getNeighbors(hexagonInt);
 
     for (let i = neighbors.length - 1; i >= 0; i--) {
-        if(!isMovePossible(hexagonInt,neighbors[i]))
+        if(!isMovePossible(hexagonInt,neighbors[i]))     // on les retire la 
             neighbors.remove(i);
     }
     return neighbors;
 }
 
-function getNeighbors(hexagonInt){
+function getNeighbors(hexagonInt){ // renvoie les cases sur le plateau autour de hexagonInt
     let neighbors = [];
     for(i = 0; i < neighborsPos.length; i++){
         let x = Math.trunc(hexagonInt/10) + neighborsPos[i][0];
@@ -203,7 +294,16 @@ function getNeighbors(hexagonInt){
     return neighbors;
 }
 
-function isMovePossible(hexagonIntFrom, hexagonIntTo){
+function isSameColor(hexagonFrom, hexagonTo){
+	if (hexagonFrom.classList.contains("caseW") && hexagonTo.classList.contains("caseW"))
+		return true;
+	if (hexagonFrom.classList.contains("caseB") && hexagonTo.classList.contains("caseB"))
+		return true;
+	else
+		return false;
+}
+
+function isMovePossible(hexagonIntFrom, hexagonIntTo){ // move pas toujours possible
     return true;
 }
 
