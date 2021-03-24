@@ -40,5 +40,13 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
+const httpServer = require("http").createServer(app);
 
-app.listen(8080);
+httpServer.listen(8080);
+
+
+var io = require('socket.io')(httpServer);
+io.on('connection', function (socket) {
+  console.log('client connected');
+  socket.emit('hello',{'this': 'is my data'});
+});
