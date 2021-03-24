@@ -36,6 +36,12 @@ h4 {
 	text-decoration: underline;
 }
 
+h5 {
+	font: Arial;
+	font-size: 20pt;
+	color: noir;
+}
+
 
 table {
   float: left;
@@ -44,13 +50,7 @@ table {
   margin-right: 20px;
   text-align: left;
 }
-table2 {
-  float: left;
-  margin-bottom: 1.33em;
-  border-collapse: collapse;
-  margin-right: 20px;
-  text-align: left;
-}
+
 th {
 	font: Arial;
 	font-size: 10pt;
