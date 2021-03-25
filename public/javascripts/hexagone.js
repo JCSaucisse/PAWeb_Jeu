@@ -46,7 +46,6 @@ function hexagonClicked(hexagonId) {
     hexagon = document.getElementById(hexagonId);
     if(hexagon.classList.contains("select") && gamePhase == 'playerSelect'){
         // Selection
-		console.log("selection1");
         unselectAll();
         hexagon.classList.add("select");
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
@@ -67,7 +66,6 @@ function hexagonClicked(hexagonId) {
     }
     else if(hexagon.classList.contains("select") && gamePhase == 'playerTarget'){
         // Deselection
-		console.log("selection2");
         unselectAll();
         untargetAll();
 		unsameAll();
@@ -83,9 +81,6 @@ function hexagonClicked(hexagonId) {
 				isOk = true;
 			}
 		}
-		//while(selectedHexagonIntListBis.length > 0){
-		//	selectedHexagonIntList.push(selectedHexagonIntListBis.pop());
-		//}
 		if (selectedHexagonIntList.length == 0){
 			console.log("length = 0");
 			selectPlayableCases();
@@ -99,10 +94,10 @@ function hexagonClicked(hexagonId) {
 		}
     }
 	else if(hexagon.classList.contains("same") && selectedHexagonIntList.length==1){
-		// selection du deuxième hexagon
-		console.log("deuxième hexagon");
+		// selection du deuxième hexagon  rajouter les target
 		hexagon.classList.remove("same");
 		unsameAll();
+		untargetAll();
 		hexagon.classList.add("select");
 		let hexagonInt = parseInt(hexagonId.replace("hexagon", ""));
 		selectedHexagonIntList.push(hexagonInt);
@@ -110,18 +105,21 @@ function hexagonClicked(hexagonId) {
         for(let i = 0; i < targets.length; i++){
 			let targetIntStr = targets[i].toString();
 			targetI = document.getElementById("hexagon"+targetIntStr)
-			if(!isSameColor(hexagon, targetI)){
+			if(isSameColor(hexagon, targetI)){
+				document.getElementById("hexagon"+targetIntStr).classList.add("same");
+			}
+			else{
 				document.getElementById("hexagon"+targetIntStr).classList.add("target");
 			}
-		}
+        }
 		getSame2();
         gamePhase = 'playerTarget';
 	}
 	else if(hexagon.classList.contains("same") && selectedHexagonIntList.length==2){
 		// selection du troisième hexagon
-		console.log("troisième hexagon");
 		hexagon.classList.remove("same");
 		unsameAll();
+		untargetAll();
 		hexagon.classList.add("select");
 		let hexagonInt = parseInt(hexagonId.replace("hexagon", ""));
 		selectedHexagonIntList.push(hexagonInt);
@@ -137,12 +135,26 @@ function hexagonClicked(hexagonId) {
 	}
     else if(hexagon.classList.contains("target")){
         // Target = ou deplacer la bille
-		console.log("target");
-        unselectAll();
+        let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
+		deplacement = getDeplacement(hexagonInt);
+		if(selectedHexagonIntList.length>1){
+			if(Math.abs(deplacement)==Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])){
+				selectedHexagonIntC = getBilleDeplacement(deplacement);
+				move(selectedHexagonIntC, selectedHexagonIntC+deplacement);
+			}
+			else{
+				for(let i=0; i<selectedHexagonIntList.length; i++){
+					selectedHexagonIntC = selectedHexagonIntList[i]
+					move(selectedHexagonIntC, selectedHexagonIntC+deplacement);
+				}
+			}
+		}
+		else{
+			move(selectedHexagonIntList[0], hexagonInt);
+		}
+		        unselectAll();
         untargetAll();
 		unsameAll();
-        let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
-        move(selectedHexagonInt, hexagonInt);
 		selectedHexagonIntList = [];
         beginTurn(1-turnToPlay);
     }
@@ -302,26 +314,29 @@ function unsameAll(){
 	}
 }
 
-function getPossibleTargets(hexagonInt){  // et si on donne une liste des hexagon selectionné
-    neighbors = getNeighbors(hexagonInt);
+function getPossibleTargets(hexagonInt){
+    neighbors = getNeighbors();
 
     for (let i = neighbors.length - 1; i >= 0; i--) {
         if(!isMovePossible(hexagonInt,neighbors[i]))     // on les retire la 
-            neighbors.remove(i);
+            neighbors.splice(i,1);
     }
     return neighbors;
 }
 
-function getNeighbors(hexagonInt){ // renvoie les cases sur le plateau autour de hexagonInt
+function getNeighbors(){ // renvoie les cases sur le plateau autour de selectedHexagonIntList
     let neighbors = [];
-    for(i = 0; i < neighborsPos.length; i++){
-        let x = Math.trunc(hexagonInt/10) + neighborsPos[i][0];
-        let y = hexagonInt%10 + neighborsPos[i][1];
-        if(x < 0 || x > 8 || y < 0 || y > 8)
-            continue;
-        if(neighborsGrid[x][y] != -1)
-            neighbors.push(neighborsGrid[x][y]);
-    }
+	for(let j=0; j<selectedHexagonIntList.length; j++){
+		hexagonIntJ = selectedHexagonIntList[j];
+		for(i = 0; i < neighborsPos.length; i++){
+			let x = Math.trunc(hexagonIntJ/10) + neighborsPos[i][0];
+			let y = hexagonIntJ%10 + neighborsPos[i][1];
+			if(x < 0 || x > 8 || y < 0 || y > 8)
+				continue;
+			if(neighborsGrid[x][y] != -1)
+				neighbors.push(neighborsGrid[x][y]);
+		}
+	}
     return neighbors;
 }
 
@@ -334,8 +349,150 @@ function isSameColor(hexagonFrom, hexagonTo){
 		return false;
 }
 
+function isVsColor(hexagonFrom, hexagonTo){
+	if (hexagonFrom.classList.contains("caseW") && hexagonTo.classList.contains("caseB"))
+		return true;
+	if (hexagonFrom.classList.contains("caseB") && hexagonTo.classList.contains("caseW"))
+		return true;
+	else
+		return false;
+}
+
 function isMovePossible(hexagonIntFrom, hexagonIntTo){ // move pas toujours possible
-    return true;
+	hexagonTo = document.getElementById("hexagon"+hexagonIntTo);
+	selectedHexagon = document.getElementById("hexagon"+selectedHexagonIntList[0]);
+	if (selectedHexagonIntList.length == 1){
+		if (isVsColor(selectedHexagon, hexagonTo)){
+			return false;
+		}
+		else{
+			return true;
+		}
+	}
+	else if(selectedHexagonIntList.length == 2){
+		let x = Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])
+		let maxi = Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1])+x;
+		let mini = maxi-3*x;
+		if ((hexagonIntTo == maxi) || (hexagonIntTo == mini)){	
+			let sensDeplacement = -procheZero((maxi-x-hexagonIntTo), (mini+x-hexagonIntTo));
+			if (isVsColor(selectedHexagon, hexagonTo) && billesAdversesAlignees(hexagonIntTo, sensDeplacement) > 1){
+				return false; 
+			}
+			else{
+				return true;
+			}
+		}
+		else{
+			sensDeplacement = hexagonIntTo - selectedHexagonIntList[0];
+			if(Math.abs(sensDeplacement) == 1 || Math.abs(sensDeplacement) == 10 || Math.abs(sensDeplacement) == 11){
+				return isMoveLatPossible(sensDeplacement);
+			}
+			else{
+				return false;
+			}
+		}
+	}
+	else{
+		let x = Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])
+		let maxi = Math.max(Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1]), selectedHexagonIntList[2])+x;
+		let mini = maxi-4*x;
+		let sensDeplacement = -procheZero((maxi-x-hexagonIntTo), (mini+x-hexagonIntTo));
+		if ((hexagonIntTo == maxi) || (hexagonIntTo == mini)){
+			if (isVsColor(selectedHexagon, hexagonTo) && billesAdversesAlignees(hexagonIntTo, sensDeplacement) > 2){
+				return false; 
+			}
+			else{
+				return true;
+			}
+		}
+		else{
+			sensDeplacement = hexagonIntTo - selectedHexagonIntList[0];
+			if(Math.abs(sensDeplacement) == 1 || Math.abs(sensDeplacement) == 10 || Math.abs(sensDeplacement) == 11){
+				return isMoveLatPossible(sensDeplacement);
+			}
+			else{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+function isMoveLatPossible(x){
+	let ret = true;
+	for(let i=0; i<selectedHexagonIntList.length;i++){
+		hexagonIntTarget = selectedHexagonIntList[i]+x;
+		hexagonTarget = document.getElementById("hexagon"+hexagonIntTarget);
+		if (hexagonTarget != null){
+			if (hexagonTarget.classList.contains("caseB") || hexagonTarget.classList.contains("caseW")){
+				ret = false;
+			}
+		}
+	}
+	return ret;
+}
+
+function procheZero(x,y){
+	z = Math.min(Math.abs(x),Math.abs(y));
+	if(Math.abs(x)==z){
+		return x
+	}
+	else{
+		return y
+	}
+}
+
+function billesAdversesAlignees(hexagonIntTo, sensDeplacement){
+	let nbBillesAlignees = 0;
+	hexagonIntToCons = hexagonIntTo;
+	hexagonTo = document.getElementById("hexagon"+hexagonIntTo);
+	hexagonTarget = document.getElementById("hexagon"+hexagonIntToCons);
+	condition = true;
+	while (condition){
+		console.log("entree dans la boucle");
+		nbBillesAlignees += 1;
+		hexagonIntToCons += sensDeplacement;
+		hexagonTarget = document.getElementById("hexagon"+hexagonIntToCons);
+		if (hexagonTarget != null){
+			if(isVsColor(hexagonTo, hexagonTarget)){
+				nbBillesAlignees = 3;
+				condition = false;
+			}
+			else if(!isSameColor(hexagonTo, hexagonTarget)){
+				condition = false;
+			}
+		}
+		else{ // on est sur un bord
+			condition = false;
+		}
+	}
+	console.log(nbBillesAlignees);
+	return nbBillesAlignees;
+}
+
+function getDeplacement(hexagonIntTo){
+	let n = selectedHexagonIntList.length;
+	let x = Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])
+	let maxi = Math.max(Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1]), selectedHexagonIntList[2])+x;
+	let mini = maxi-(n+1)*x;
+	let sensDeplacement = -procheZero((maxi-x-hexagonIntTo), (mini+x-hexagonIntTo));
+	return sensDeplacement;
+}
+
+function getBilleDeplacement(deplacement){
+	let numBille = 1;
+	let billeIntDeplacement = null;
+	for (let i=0; i<selectedHexagonIntList.length; i++){
+		billeIntDeplacement = selectedHexagonIntList[i]+deplacement*(selectedHexagonIntList.length-1);
+		billeDeplacement = document.getElementById("hexagon"+billeIntDeplacement);
+		if(billeDeplacement != null){
+			if(billeDeplacement.classList.contains("select")){
+				numBille = i;
+				console.log("ui");
+			}
+		}
+	}
+	return selectedHexagonIntList[numBille];
 }
 
 function move(hexagonIntFrom, hexagonIntTo){
