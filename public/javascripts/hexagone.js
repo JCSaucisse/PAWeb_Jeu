@@ -152,7 +152,7 @@ function hexagonClicked(hexagonId) {
 		else{
 			move(selectedHexagonIntList[0], hexagonInt);
 		}
-		        unselectAll();
+		unselectAll();
         untargetAll();
 		unsameAll();
 		selectedHexagonIntList = [];
@@ -473,7 +473,13 @@ function billesAdversesAlignees(hexagonIntTo, sensDeplacement){
 function getDeplacement(hexagonIntTo){
 	let n = selectedHexagonIntList.length;
 	let x = Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])
-	let maxi = Math.max(Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1]), selectedHexagonIntList[2])+x;
+	let maxi = 0;
+	if(selectedHexagonIntList.length == 2){
+		maxi = Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1])+x;
+	}
+	else{
+		maxi = Math.max(Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1]), selectedHexagonIntList[2])+x;
+	}
 	let mini = maxi-(n+1)*x;
 	let sensDeplacement = -procheZero((maxi-x-hexagonIntTo), (mini+x-hexagonIntTo));
 	return sensDeplacement;
