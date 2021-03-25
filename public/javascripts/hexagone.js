@@ -428,6 +428,9 @@ function isMoveLatPossible(x){
 				ret = false;
 			}
 		}
+		else{
+			ret = false;
+		}
 	}
 	return ret;
 }
