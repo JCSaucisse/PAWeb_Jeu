@@ -71,7 +71,7 @@ let grid;
 
 function init(){
     console.log('init');
-    turnToPlay = 0;
+    phase = 0;
     grid = gridInit;
 
     // deux, un chaque couleur, le noir commence son tour
@@ -79,13 +79,15 @@ function init(){
     playerSockets[1].emit('init', 1);
 }
 
-function play(){
+function play(hexagonIntFromAndToList){
+    console.log('play ', hexagonIntFromAndToList);
     if(isMovePossible()){
         // modif grille locale
 
         // verif victoire
 
-        playerSockets[1-phase].emit('opponentPlay', 0); // a l'autre, c'est a lui de jouer
+        phase = 1-phase;
+        playerSockets[phase].emit('opponentPlay', hexagonIntFromAndToList); // a l'autre, c'est a lui de jouer
     }
 }
 
@@ -119,13 +121,13 @@ io.on('connection', function (socket) {
         }
     });
 
-    socket.on('play', function () {
-        console.log('play ', socket.id);
+    socket.on('play', function (hexagonIntFromAndToList) {
+        console.log('play ', socket.id, 'phase :', phase);
         if(phase != 0 && phase != 1)
             return;
         if(socket.id != playerSockets[phase].id) // verif c'est bien a lui de jouer
             return;
 
-        play();
+        play(hexagonIntFromAndToList);
     });
 });

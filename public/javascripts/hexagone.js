@@ -139,19 +139,24 @@ function hexagonClicked(hexagonId) {
         let hexagonInt = parseInt(hexagonId.replace("hexagon",""));
 		deplacement = getDeplacement(hexagonInt);
 		if(selectedHexagonIntList.length>1){
+            let hexagonIntFromList = [];
+            let hexagonIntToList = [];
 			if(Math.abs(deplacement)==Math.abs(selectedHexagonIntList[0]-selectedHexagonIntList[1])){
 				selectedHexagonIntC = getBilleDeplacement(deplacement);
-				move(selectedHexagonIntC, selectedHexagonIntC+deplacement);
+                hexagonIntFromList.push(selectedHexagonIntC);
+                hexagonIntToList.push(selectedHexagonIntC+deplacement);
 			}
 			else{
 				for(let i=0; i<selectedHexagonIntList.length; i++){
 					selectedHexagonIntC = selectedHexagonIntList[i]
-					move(selectedHexagonIntC, selectedHexagonIntC+deplacement);
+                    hexagonIntFromList.push(selectedHexagonIntC);
+                    hexagonIntToList.push(selectedHexagonIntC+deplacement);
 				}
 			}
+            play(hexagonIntFromList, hexagonIntToList);
 		}
 		else{
-			move(selectedHexagonIntList[0], hexagonInt);
+			play([selectedHexagonIntList[0]], [hexagonInt]);
 		}
 		unselectAll();
         untargetAll();
@@ -510,8 +515,19 @@ function getBilleDeplacement(deplacement){
 	return selectedHexagonIntList[numBille];
 }
 
-function move(hexagonIntFrom, hexagonIntTo){
-    console.log("move"+hexagonIntFrom.toString());
+function play(hexagonIntFromList, hexagonIntToList){
+    socket.emit('play', [hexagonIntFromList, hexagonIntToList]);
+    move(hexagonIntFromList, hexagonIntToList);
+}
+
+function move(hexagonIntFromList, hexagonIntToList){
+    for(let i = 0; i < hexagonIntFromList.length; i++){
+        moveOne(hexagonIntFromList[i], hexagonIntToList[i]);
+    }
+}
+
+function moveOne(hexagonIntFrom, hexagonIntTo){
+    console.log("moveOne"+hexagonIntFrom.toString());
 
     // On enleve From
     let hexagonFrom = document.getElementById("hexagon"+hexagonIntFrom.toString());
@@ -532,7 +548,7 @@ function move(hexagonIntFrom, hexagonIntTo){
     let direction = hexagonIntTo - hexagonIntFrom;
     console.log("direction : ", direction);
     let nextMove = hexagonIntTo+10*(Math.trunc(direction/10))+direction%10;
-    move(hexagonIntTo, nextMove);
+    moveOne(hexagonIntTo, nextMove);
 
     // On remet To
     let hexagonTo = document.getElementById("hexagon"+hexagonIntTo.toString());
@@ -550,10 +566,15 @@ function readyButtonClicked(){
 }
 
 var socket = io.connect('http://localhost:8080');
-socket.on('statut', function (data) {              // réception 'hello'
+socket.on('statut', function (data) {
     dropzone.textContent = 'Statut : '+JSON.stringify(data);
 });
-socket.on('init', function (playerColor) {              // réception 'hello'
+socket.on('init', function (playerColor) {
     init(playerColor);
+});
+socket.on('opponentPlay', function (hexagonIntFromAndToList) {
+    console.log('socket.on opponentPlay');
+    move(hexagonIntFromAndToList[0], hexagonIntFromAndToList[1]);
+    beginTurn(1-turnToPlay);
 });
 
