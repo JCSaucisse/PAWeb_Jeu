@@ -495,7 +495,10 @@ function getDeplacement(hexagonIntTo){
 		maxi = Math.max(Math.max(selectedHexagonIntList[0],selectedHexagonIntList[1]), selectedHexagonIntList[2])+x;
 	}
 	let mini = maxi-(n+1)*x;
-	let sensDeplacement = -procheZero((maxi-x-hexagonIntTo), (mini+x-hexagonIntTo));
+	let sensDeplacement = hexagonIntTo-selectedHexagonIntList[0];
+	if(hexagonIntTo == maxi || hexagonIntTo == mini){
+		sensDeplacement = -procheZero((maxi-x-hexagonIntTo), (mini+x-hexagonIntTo));
+	}
 	return sensDeplacement;
 }
 
