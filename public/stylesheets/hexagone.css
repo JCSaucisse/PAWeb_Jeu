@@ -23,6 +23,9 @@
   --color-hex-target: #CC4444;
   --color-hex-target-hover:   #CC2222;
 
+  --color-hex-same: #4444CC;
+  --color-hex-same: #2222CC;
+
   --color-ballW: #EEEEEE;
   --color-ballB: #111111;
 }
@@ -157,6 +160,23 @@
   border-bottom-color: var(--color-hex-target-hover);
 }
 
+.same {
+  background-color: var(--color-hex-same);
+}
+.same::after,
+.same::before {
+  border-top-color: var(--color-hex-same);
+  border-bottom-color: var(--color-hex-same);
+}
+.same:hover {
+  fill: var(--color-hex-same-hover);
+  background-color: var(--color-hex-same-hover);
+}
+.same:hover::after,
+.same:hover::before {
+  border-top-color: var(--color-hex-same-hover);
+  border-bottom-color: var(--color-hex-same-hover);
+}
 
 .ballB, .ballW {
   z-index: 1;
