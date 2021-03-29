@@ -51,32 +51,20 @@ httpServer.listen(8080);
 
 // Gestion du jeu
 const playerNames = ['noirs', 'blancs'];
-const gridInit = [
-        [ 1, 1, 1, 1, 1,-1,-1,-1,-1],
-        [ 1, 1, 1, 1, 1 ,1,-1,-1,-1],
-        [ 2, 2, 1, 1, 1, 2, 2,-1,-1],
-        [ 2, 2, 2, 2, 2, 2, 2, 2,-1],
-        [ 2, 2, 2, 2, 2, 2, 2, 2, 2],
-        [-1, 2, 2, 2, 2, 2, 2, 2, 2],
-        [-1,-1, 2, 2, 0, 0, 0, 2, 2],
-        [-1,-1,-1, 0, 0, 0, 0, 0, 0],
-        [-1,-1,-1,-1, 0, 0, 0, 0, 0]];
 
 let playerSockets = [];
 
 //  -1 attente de deux ready; 0 : tour des noirs; 1 blancs
 let phase = -1;
 
-let grid;
-
 function init(){
     console.log('init');
     phase = 0;
-    grid = gridInit;
 
+    rand = Math.random()<0.5?0:1;
     // deux, un chaque couleur, le noir commence son tour
-    playerSockets[0].emit('init', 0);
-    playerSockets[1].emit('init', 1);
+    playerSockets[rand].emit('init', 0);
+    playerSockets[1-rand].emit('init', 1);
 }
 
 function play(hexagonIntFromAndToList){
@@ -92,6 +80,7 @@ function play(hexagonIntFromAndToList){
 }
 
 function isMovePossible(){
+    // le serveur ne vérifie pas, il fait confiance aux joueurs
     return true;
 }
 
@@ -101,24 +90,34 @@ var io = require('socket.io')(httpServer);
 io.on('connection', function (socket) {
     console.log('connection', socket.id);
     socket.emit('statut','connecté');
-
+    socket.emit('clear','');
 
 
     socket.on('ready', function (ready) {
-        console.log('ready ', socket.id, ready);
-        if(phase != -1)
+        if(phase != -1 && ready)
             return;
 
+        if(!ready && phase != -1){
+            for(let i = 0; i < playerSockets.length; i++){
+                playerSockets[i].emit('clear','');
+                phase = -1;
+            }
+            socket.emit('clear','');
+            playerSockets = [];
+        }
         if(ready){
             playerSockets.push(socket);
-
-            if(playerSockets.length == 2){ // verif tjrs present?
-                init();
+            if(playerSockets.length == 2){
+                // verif tjrs present
+                if(playerSockets[0].connected && playerSockets[1].connected){
+                    init();
+                }
             }
         }
-        else{
+        else if(playerSockets.includes(socket)){
             playerSockets.splice(playerSockets.indexOf(socket),1);
         }
+        console.log('ready ', socket.id, ready, playerSockets.length);
     });
 
     socket.on('play', function (hexagonIntFromAndToList) {

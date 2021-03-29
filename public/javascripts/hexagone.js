@@ -275,10 +275,29 @@ function init(playerColor_){
     console.log("init");
     gamePhase = 'init';
     playerColor = playerColor_;
+    document.getElementById('readyButton').innerHTML = "Quitter la partie"
+    updatePlayerColorIndicator();
     createGrid();
     initBalls();
     updateScoreIndicator();
     beginTurn(0);
+}
+
+function clear(){
+    gamePhase = 'preinit';
+    let gridElement = document.getElementById('grid');
+    while (gridElement.firstChild) {
+        gridElement.removeChild(gridElement.lastChild);
+    }
+    score = [0,0];
+    updateScoreIndicator();
+    document.getElementById('playerColorIndicator').innerHTML = "";
+    document.getElementById('turnToPlayIndicator').innerHTML = "";
+    document.getElementById('scoreIndicator').innerHTML = "";
+    document.getElementById('readyButton').innerHTML = "Prêt";
+    if(document.getElementById('readyButton').classList.contains('ready')){
+        document.getElementById('readyButton').classList.remove('ready');
+    }
 }
 
 function beginTurn(player){
@@ -292,6 +311,7 @@ function beginTurn(player){
     else{
         gamePhase = 'opponentTurn';
     }
+    updateTurnToPlayIndicator();
 }
 
 function selectPlayableCases(){
@@ -559,14 +579,36 @@ function moveOne(hexagonIntFrom, hexagonIntTo){
 }
 
 function updateScoreIndicator(){
-    document.getElementById("scoreIndicator").innerHTML = score[0].toString()+" - "+score[1].toString();
+    document.getElementById("scoreIndicator").innerHTML = "Score : "+score[0].toString()+" - "+score[1].toString();
+}
+
+function updatePlayerColorIndicator(){
+    if(playerColor != null)
+        document.getElementById("playerColorIndicator").innerHTML = "Vous jouez les " + playerNames[playerColor] + ".";
+}
+
+function updateTurnToPlayIndicator(){
+    document.getElementById("turnToPlayIndicator").innerHTML = "C'est aux " + playerNames[turnToPlay] + " de jouer.";
 }
 
 function readyButtonClicked(){
-    ready = true;
-    document.getElementById("readyButton").innerHTML = "ok";
+    let ready;
+    let button = document.getElementById("readyButton");
+    if(button.classList.contains('ready')){
+        button.classList.remove('ready');
+        button.innerHTML = "Prêt";
+        ready = false;
+    }else{
+        button.classList.add('ready');
+        button.innerHTML = "En attente d'un autre joueur (annuler)";
+        ready = true;
+    }
+    
+    
     socket.emit('ready', ready);
 }
+
+
 
 var socket = io.connect('http://localhost:8080');
 socket.on('statut', function (data) {
@@ -580,4 +622,9 @@ socket.on('opponentPlay', function (hexagonIntFromAndToList) {
     move(hexagonIntFromAndToList[0], hexagonIntFromAndToList[1]);
     beginTurn(1-turnToPlay);
 });
+socket.on('clear', function () {
+    clear();
+});
 
+
+window.onload = clear;
