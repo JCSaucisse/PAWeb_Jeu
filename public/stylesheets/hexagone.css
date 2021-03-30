@@ -222,13 +222,14 @@
 .victory{
     z-index: 4;
 
-    position: absolute;
+    position: relative;
     width: 80vw;
     min-width: 300px;
     height: 10vh;
     min-height: 100px 
     padding-top: 500px;
     left: 10vw;
+    top:-500px;
     border: 3px solid green;
 
     background: rgb(0, 180, 20); /* Fallback for older browsers without RGBA-support */
@@ -242,13 +243,13 @@
 .defeat{
     z-index: 4;
 
-    position: absolute;
+    position: relative;
     width: 80vw;
     min-width: 300px;
     height: 10vh;
     min-height: 100px 
-    top: 500px;
     left: 10vw;
+    top:-500px;
     border: 3px solid #800;
 
     background: rgb(180, 0, 20); /* Fallback for older browsers without RGBA-support */
