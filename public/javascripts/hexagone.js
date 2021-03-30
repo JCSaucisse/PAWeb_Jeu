@@ -266,7 +266,7 @@ function addBall(ballCase, color){
 function removeBall(ballCase){
     console.log("removeBall "+ballCase.id);
     if(!ballCase.classList.contains("caseW") && !ballCase.classList.contains("caseB"))
-        return false
+        return false;
     ballCase.classList.remove("caseW");
     ballCase.classList.remove("caseB");
     ballCase.firstChild.remove();
@@ -278,7 +278,8 @@ function init(playerColor_){
     clear();
     gamePhase = 'init';
     playerColor = playerColor_;
-    document.getElementById('readyButton').innerHTML = "Quitter la partie"
+    document.getElementById('readyButton').innerHTML = "Quitter la partie";
+    ready = true;
     updatePlayerColorIndicator();
     createGrid();
     initBalls();
