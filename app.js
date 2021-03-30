@@ -52,6 +52,8 @@ httpServer.listen(8080);
 // Gestion du jeu
 const playerNames = ['noirs', 'blancs'];
 
+let playingPlayer; // joueur en train de jouer
+
 let playerSockets = [];
 
 //  -1 attente de deux ready; 0 : tour des noirs; 1 blancs
@@ -59,29 +61,21 @@ let phase = -1;
 
 function init(){
     console.log('init');
-    phase = 0;
+    phase = 0; // les noirs commencent
 
     rand = Math.random()<0.5?0:1;
-    // deux, un chaque couleur, le noir commence son tour
-    playerSockets[rand].emit('init', 0);
-    playerSockets[1-rand].emit('init', 1);
+    playingPlayer = rand; // la personne jouant les noirs est choisie aleatoirement
+
+    // deux, un chaque couleur, le noir commence a jouer
+    playerSockets[playingPlayer].emit('init', 0);
+    playerSockets[1-playingPlayer].emit('init', 1);
 }
 
 function play(hexagonIntFromAndToList){
     console.log('play ', hexagonIntFromAndToList);
-    if(isMovePossible()){
-        // modif grille locale
-
-        // verif victoire
-
-        phase = 1-phase;
-        playerSockets[phase].emit('opponentPlay', hexagonIntFromAndToList); // a l'autre, c'est a lui de jouer
-    }
-}
-
-function isMovePossible(){
-    // le serveur ne vérifie pas, il fait confiance aux joueurs
-    return true;
+    phase = 1-phase;
+    playingPlayer = 1-playingPlayer;
+    playerSockets[playingPlayer].emit('opponentPlay', hexagonIntFromAndToList); // a l'autre, c'est a lui de jouer
 }
 
 
@@ -89,7 +83,6 @@ function isMovePossible(){
 var io = require('socket.io')(httpServer);
 io.on('connection', function (socket) {
     console.log('connection', socket.id);
-    socket.emit('statut','connecté');
     socket.emit('clear','');
 
 
@@ -124,9 +117,18 @@ io.on('connection', function (socket) {
         console.log('play ', socket.id, 'phase :', phase);
         if(phase != 0 && phase != 1)
             return;
-        if(socket.id != playerSockets[phase].id) // verif c'est bien a lui de jouer
+        if(socket.id != playerSockets[playingPlayer].id) // verif : c'est bien a lui de jouer
             return;
 
         play(hexagonIntFromAndToList);
+    });
+
+    socket.on('end', function (won) {
+        console.log('end ', socket.id, "won : ", won);
+        if(phase != 0 && phase != 1)
+            return;
+
+        // on envoie a celui qui pas envoye la requete (celui qui a joue a envoye un play donc ca inverse)
+        playerSockets[playingPlayer].emit('end', 1-won);
     });
 });

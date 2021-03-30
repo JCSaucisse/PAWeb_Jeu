@@ -7,6 +7,8 @@ let score = [0, 0];
 let gamePhase = 'preinit';
 // 'init', 'playerSelect', 'playerTarget'
 
+let ready = false;
+
 let selectedHexagonInt = -1;
 let selectedHexagonIntList = [];
 
@@ -298,6 +300,9 @@ function clear(){
     if(document.getElementById('readyButton').classList.contains('ready')){
         document.getElementById('readyButton').classList.remove('ready');
     }
+    let endScene = document.getElementById('EndScene');
+    endScene.innerHTML = "";
+    endScene.classList = [];
 }
 
 function beginTurn(player){
@@ -469,10 +474,10 @@ function isMoveLatPossible(x){
 function procheZero(x,y){
 	z = Math.min(Math.abs(x),Math.abs(y));
 	if(Math.abs(x)==z){
-		return x
+		return x;
 	}
 	else{
-		return y
+		return y;
 	}
 }
 
@@ -541,6 +546,7 @@ function getBilleDeplacement(deplacement){
 function play(hexagonIntFromList, hexagonIntToList){
     socket.emit('play', [hexagonIntFromList, hexagonIntToList]);
     move(hexagonIntFromList, hexagonIntToList);
+    isItTheEnd();
 }
 
 function move(hexagonIntFromList, hexagonIntToList){
@@ -579,7 +585,7 @@ function moveOne(hexagonIntFrom, hexagonIntTo){
 }
 
 function updateScoreIndicator(){
-    document.getElementById("scoreIndicator").innerHTML = "Score : "+score[0].toString()+" - "+score[1].toString();
+    document.getElementById("scoreIndicator").innerHTML = "Score : noirs "+score[0].toString()+" - "+score[1].toString() + " blancs";
 }
 
 function updatePlayerColorIndicator(){
@@ -591,19 +597,42 @@ function updateTurnToPlayIndicator(){
     document.getElementById("turnToPlayIndicator").innerHTML = "C'est aux " + playerNames[turnToPlay] + " de jouer.";
 }
 
+function isItTheEnd(){
+    let won = -1;
+    if(score[playerColor] == 6)
+        won = 1;
+    else if(score[1-playerColor] == 6)
+        won = 0;
+    if(won > -1){
+        end(won);
+        socket.emit('end', won);
+    }
+}
+
+function end(won){
+    console.log('end ', won);
+    let endScene = document.getElementById('EndScene');
+    if(won == 1){
+        endScene.innerHTML = "Vous avez gagné, félicitation!";
+        endScene.classList.add('victory');
+    }
+    else{
+        endScene.innerHTML = "Vous avez perdu, dommage!";
+        endScene.classList.add('defeat');
+    }
+    
+}
+
 function readyButtonClicked(){
-    let ready;
     let button = document.getElementById("readyButton");
-    if(button.classList.contains('ready')){
+    if(ready){
         button.classList.remove('ready');
         button.innerHTML = "Prêt";
-        ready = false;
     }else{
         button.classList.add('ready');
         button.innerHTML = "En attente d'un autre joueur (annuler)";
-        ready = true;
     }
-    
+    ready = !ready;
     
     socket.emit('ready', ready);
 }
@@ -611,9 +640,6 @@ function readyButtonClicked(){
 
 
 var socket = io.connect('http://localhost:8080');
-socket.on('statut', function (data) {
-    dropzone.textContent = 'Statut : '+JSON.stringify(data);
-});
 socket.on('init', function (playerColor) {
     init(playerColor);
 });
@@ -624,6 +650,9 @@ socket.on('opponentPlay', function (hexagonIntFromAndToList) {
 });
 socket.on('clear', function () {
     clear();
+});
+socket.on('end', function (won) {
+    end(won);
 });
 
 
