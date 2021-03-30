@@ -93,9 +93,9 @@ io.on('connection', function (socket) {
         if(!ready && phase != -1){
             for(let i = 0; i < playerSockets.length; i++){
                 playerSockets[i].emit('clear','');
-                phase = -1;
             }
             socket.emit('clear','');
+            phase = -1;
             playerSockets = [];
         }
         if(ready){
@@ -122,7 +122,19 @@ io.on('connection', function (socket) {
 
         play(hexagonIntFromAndToList);
     });
-
+    socket.on('disconnect', function () {
+        if(playerSockets.includes(socket)){
+            playerSockets.splice(playerSockets.indexOf(socket),1);
+            if(phase == 0 || phase == 1){ // en jeu : on revient a la page d'attente
+                for(let i = playerSockets.length-1; i > 0 ; i--){
+                    console.log('clear ', playerSockets[i].id);
+                    playerSockets[i].emit('clear','');
+                    playerSockets.splice(i,1);
+                }
+                phase = -1;
+            }
+        }
+    });
     socket.on('end', function (won) {
         console.log('end ', socket.id, "won : ", won);
         if(phase != 0 && phase != 1)

@@ -275,6 +275,7 @@ function removeBall(ballCase){
 
 function init(playerColor_){
     console.log("init");
+    clear();
     gamePhase = 'init';
     playerColor = playerColor_;
     document.getElementById('readyButton').innerHTML = "Quitter la partie"
@@ -297,6 +298,7 @@ function clear(){
     document.getElementById('turnToPlayIndicator').innerHTML = "";
     document.getElementById('scoreIndicator').innerHTML = "";
     document.getElementById('readyButton').innerHTML = "Prêt";
+    ready = false;
     if(document.getElementById('readyButton').classList.contains('ready')){
         document.getElementById('readyButton').classList.remove('ready');
     }
