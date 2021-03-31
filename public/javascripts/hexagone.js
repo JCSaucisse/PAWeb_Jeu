@@ -43,7 +43,9 @@ const neighborsGrid = [
         [-1,-1,-1,73,74,75,76,77,78],
         [-1,-1,-1,-1,84,85,86,87,88]];
 
-function hexagonClicked(hexagonId) { 
+function hexagonClicked(hexagonId) {
+    if(gamePhase == "end")
+        return;
     console.log("clic on : ");
     console.log(hexagonId);
     hexagon = document.getElementById(hexagonId);
@@ -614,6 +616,7 @@ function isItTheEnd(){
 
 function end(won){
     console.log('end ', won);
+    gamePhase = 'end';
     let endScene = document.getElementById('EndScene');
     if(won == 1){
         endScene.innerHTML = "Vous avez gagné, félicitation!";
@@ -623,7 +626,6 @@ function end(won){
         endScene.innerHTML = "Vous avez perdu, dommage!";
         endScene.classList.add('defeat');
     }
-    
 }
 
 function readyButtonClicked(){
